@@ -638,6 +638,20 @@ impl Server {
       None
     };
 
+    let genesis = index
+      .get_transaction(inscription_id.txid)?
+      .ok_or_not_found(|| format!("transaction {inscription_id}"))?;
+    let mut outputs = Vec::new();
+
+    for o in genesis.clone().output.iter() {
+      let script = o.clone().script_pubkey;
+      outputs.push(Output {
+        script_pubkey: script.clone(),
+        value: o.clone().value,
+        address: Address::from_script(&script, options.chain().network()).unwrap(),
+      });
+    }
+
     let address = Address::from_script(&output.script_pubkey, options.chain().network());
     let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
     let data = serde_json::json!({
@@ -649,6 +663,7 @@ impl Server {
         "content_type": inscription.content_type()
       },
       "address": address.unwrap(),
+      "genesis_address": outputs[0].address,
       "inscription_id": inscription_id,
       "next": next,
       "number": entry.number,
