@@ -1060,10 +1060,10 @@ impl Server {
   }
 
   async fn inscriptions_api(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    // Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<String> {
-    Self::inscriptions_inner_api(page_config, index, None).await
+    Self::inscriptions_inner_api(index, None).await
   }
 
   async fn inscriptions_from(
@@ -1075,11 +1075,11 @@ impl Server {
   }
 
   async fn inscriptions_from_api(
-    Extension(page_config): Extension<Arc<PageConfig>>,
+    // Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(from): Path<u64>,
   ) -> ServerResult<String> {
-    Self::inscriptions_inner_api(page_config, index, Some(from)).await
+    Self::inscriptions_inner_api(index, Some(from)).await
   }
 
   async fn inscriptions_inner(
@@ -1099,7 +1099,7 @@ impl Server {
     )
   }
   async fn inscriptions_inner_api(
-    page_config: Arc<PageConfig>,
+    // page_config: Arc<PageConfig>,
     index: Arc<Index>,
     from: Option<u64>,
   ) -> ServerResult<String> {
