@@ -170,6 +170,8 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
+        .route("/api/inscriptions", get(Self::inscriptions_api))
+        .route("/api/inscriptions/:from", get(Self::inscriptions_from_api))
         .route(
           "/api/inscription/:inscription_id",
           get(Self::inscription_api),
@@ -1057,12 +1059,27 @@ impl Server {
     Self::inscriptions_inner(page_config, index, None).await
   }
 
+  async fn inscriptions_api(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<String> {
+    Self::inscriptions_inner_api(page_config, index, None).await
+  }
+
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(from): Path<u64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     Self::inscriptions_inner(page_config, index, Some(from)).await
+  }
+
+  async fn inscriptions_from_api(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(from): Path<u64>,
+  ) -> ServerResult<String> {
+    Self::inscriptions_inner_api(page_config, index, Some(from)).await
   }
 
   async fn inscriptions_inner(
@@ -1080,6 +1097,28 @@ impl Server {
       }
       .page(page_config, index.has_sat_index()?),
     )
+  }
+  async fn inscriptions_inner_api(
+    page_config: Arc<PageConfig>,
+    index: Arc<Index>,
+    from: Option<u64>,
+  ) -> ServerResult<String> {
+    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(4, from)?;
+
+    let obj = serde_json::json!({"meta": {"success": true, "pagination": {
+      "prev": prev,
+      "current": next.and_then(|value| Some(value - 1)).unwrap_or(1).clamp(1, u64::MAX),
+      "next": next
+    }}, "data": inscriptions});
+    // println!("{}", serde_json::to_string_pretty(&obj).unwrap());
+    println!(
+      "{}",
+      next
+        .and_then(|value| Some(value - 1))
+        .unwrap_or(1)
+        .clamp(1, u64::MAX)
+    );
+    Ok(serde_json::to_string_pretty(&obj).unwrap())
   }
 
   async fn redirect_http_to_https(
