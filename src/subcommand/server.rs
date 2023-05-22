@@ -17,6 +17,7 @@ use {
     http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
+    routing::post,
     Router, TypedHeader,
   },
   axum_server::Handle,
@@ -191,6 +192,7 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/api/tx/:txid", get(Self::transaction_api))
         .route("/tx/:txid", get(Self::transaction))
+        .route("/api/inscribe", post(Self::inscribe))
         .route(
           "/api/wallet/:wallet/inscriptions",
           get(Self::wallet_inscriptions_api),
@@ -558,6 +560,16 @@ impl Server {
       )
       .page(page_config, index.has_sat_index()?),
     )
+  }
+
+  async fn inscribe(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(options): Extension<Options>,
+    Query(txid): Query<Txid>,
+  ) -> ServerResult<String> {
+    print!("TCID {}", txid);
+
+    Ok(txid.to_string())
   }
 
   async fn transaction_api(
