@@ -93,7 +93,7 @@ impl Inscribe {
     }
     let index = Index::open(&options)?;
 
-    index.update()?;
+    // index.update()?;
     if self.verbose.clone() != None {
       println!("Done updating index...");
     }
