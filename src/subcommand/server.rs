@@ -76,6 +76,11 @@ struct Search {
   query: String,
 }
 
+#[derive(Deserialize)]
+struct Inscribe {
+  file: String,
+}
+
 #[derive(RustEmbed)]
 #[folder = "static"]
 struct StaticAssets;
@@ -565,11 +570,11 @@ impl Server {
   async fn inscribe(
     Extension(index): Extension<Arc<Index>>,
     Extension(options): Extension<Options>,
-    Query(txid): Query<Txid>,
+    Query(inscribe): Query<Inscribe>,
   ) -> ServerResult<String> {
-    print!("TCID {}", txid);
+    print!("TCID {}", inscribe.file);
 
-    Ok(txid.to_string())
+    Ok(inscribe.file)
   }
 
   async fn transaction_api(
