@@ -192,7 +192,7 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/api/tx/:txid", get(Self::transaction_api))
         .route("/tx/:txid", get(Self::transaction))
-        .route("/api/inscribe", post(Self::inscribe))
+        .route("/api/inscribe", get(Self::inscribe))
         .route(
           "/api/wallet/:wallet/inscriptions",
           get(Self::wallet_inscriptions_api),
