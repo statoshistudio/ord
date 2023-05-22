@@ -169,6 +169,7 @@ impl Index {
           cmp::Ordering::Equal => {
           }
         }
+        print("Database open....");
 
         database
       }
