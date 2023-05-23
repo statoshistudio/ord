@@ -318,7 +318,12 @@ impl Inscribe {
           outpoint: *outpoint,
           offset: 0,
         })
-        .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
+        .ok_or_else(|| {
+          anyhow!(format!(
+            "wallet contains no cardinal utxos - {}",
+            utxos.len()
+          ))
+        })?
     };
 
     for (inscribed_satpoint, inscription_id) in &inscriptions {
