@@ -587,7 +587,6 @@ impl Server {
     Extension(options): Extension<Options>,
     Query(insc): Query<InscribePayload>,
   ) -> ServerResult<String> {
-    options.wallet = insc.wallet;
     let mut fee_rate: FeeRate = FeeRate::from_str(&"1").unwrap();
     let mut commit_fee_rate: Option<FeeRate> = None;
     if insc.fee_rate != None {
@@ -596,6 +595,8 @@ impl Server {
     if insc.commit_fee_rate != None {
       commit_fee_rate = Some(FeeRate::from_str(&insc.commit_fee_rate.unwrap()).unwrap());
     }
+    let mut _options = options.clone();
+    _options.wallet = insc.wallet;
     let inscribe_object = inscribe::Inscribe {
       satpoint: None,
       fee_rate,
@@ -614,7 +615,7 @@ impl Server {
       creator_wallet: insc.creator_wallet,
       creator_fee: insc.creator_fee,
     }
-    .run(options, Some(index));
+    .run(_options, Some(index));
     let data = serde_json::json!({
       "file": "john",
     });
