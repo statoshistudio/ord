@@ -110,12 +110,15 @@ impl Inscribe {
         inscriptions = index.get_inscriptions(None)?;
       }
       _ => {
-        let wallet = match Wallet::load(&options) {
-          Ok(_wallet) => _wallet,
-          Err(error) => panic!("Problem opening the wallet: {:?}", error),
-        };
+        // let wallet = match Wallet::load(&options) {
+        //   Ok(_wallet) => _wallet,
+        //   Err(error) => panic!("Problem opening the wallet: {:?}", error),
+        // };
 
-        utxos = index_param.clone().unwrap().get_unspent_outputs(wallet)?;
+        utxos = index_param
+          .clone()
+          .unwrap()
+          .get_unspent_outputs(Wallet::load(&options)?)?;
 
         inscriptions = index_param.unwrap().get_inscriptions(None)?;
       }
