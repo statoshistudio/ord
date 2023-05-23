@@ -25,8 +25,8 @@ struct TrxData {
   output: Transaction,
   input: Transaction,
 }
-#[derive(Serialize, Clone)]
-pub(crate) struct Output {
+#[derive(Serialize)]
+struct Output {
   commit: Txid,
   inscription: InscriptionId,
   reveal: Txid,
@@ -41,7 +41,6 @@ pub(crate) struct Output {
   change_address_2: Option<String>,
 }
 
-#[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
   pub(crate) satpoint: Option<SatPoint>,
@@ -81,51 +80,34 @@ pub(crate) struct Inscribe {
   pub(crate) creator_wallet: Option<Address>,
   #[clap(long, help = "Creator fee.")]
   pub(crate) creator_fee: Option<u64>,
+  #[clap(long, help = "Db index")]
+  pub(crate) index: Option<&Index>,
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, options: Options, index_param: Option<Arc<Index>>) -> Result {
-    self.insc(options, index_param);
-    Ok(())
-  }
-  pub(crate) fn insc(self, options: Options, index_param: Option<Arc<Index>>) -> Result<Output> {
+  pub(crate) fn run(self, options: Options) -> Result {
     // let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-    let output: Output;
+
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
     if self.verbose.clone() != None {
       println!("Update index..");
     }
-
     let index;
-    let mut utxos;
-    let inscriptions;
-    let index_pointer = index_param.clone();
-
-    match index_pointer {
-      // Match a single value
-      None => {
-        index = Index::open(&options)?;
-        index.update()?;
-        utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
-        inscriptions = index.get_inscriptions(None)?;
-      }
-      _ => {
-        let wallet = match Wallet::load(&options) {
-          Ok(_wallet) => _wallet,
-          Err(error) => panic!("Problem opening the wallet: {:?}", error),
-        };
-
-        utxos = index_param.clone().unwrap().get_unspent_outputs(wallet)?;
-
-        inscriptions = index_param.unwrap().get_inscriptions(None)?;
-      }
+    if self.index != None {
+      index = self.index;
+    } else {
+      index = Index::open(&options)?;
     }
 
+    // index.update()?;
     if self.verbose.clone() != None {
       println!("Done updating index...");
     }
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
+    let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+
+    let inscriptions = index.get_inscriptions(None)?;
     let commit_tx_change: [Address; 2];
     if self.change_address_1 != None && self.change_address_1 != None {
       commit_tx_change = [
@@ -205,7 +187,7 @@ impl Inscribe {
     );
 
     if self.dry_run {
-      output = Output {
+      print_json(Output {
         commit: unsigned_commit_tx.txid(),
         commit_raw: Some(unsigned_commit_tx.clone().raw_hex()),
         reveal_raw: Some(reveal_tx.clone().raw_hex()),
@@ -218,8 +200,7 @@ impl Inscribe {
         reveal_pub_key: Some(key_pair.public_key().to_hex()),
         change_address_1: Some(commit_tx_change.clone()[0].to_string()),
         change_address_2: Some(commit_tx_change[1].to_string()),
-      };
-      print_json(output.clone())?;
+      })?;
     } else {
       if !self.no_backup {
         Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
@@ -236,7 +217,8 @@ impl Inscribe {
       let reveal = client
         .send_raw_transaction(&reveal_tx)
         .context("Failed to send reveal transaction")?;
-      output = Output {
+
+      print_json(Output {
         commit,
         reveal,
         inscription: reveal.into(),
@@ -249,10 +231,10 @@ impl Inscribe {
         reveal_pub_key: Some(key_pair.public_key().to_hex()),
         change_address_1: Some(commit_tx_change.clone()[0].to_string()),
         change_address_2: Some(commit_tx_change[1].to_string()),
-      };
-      print_json(output.clone())?;
+      })?;
     };
-    Ok(output)
+
+    Ok(())
   }
 
   fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {

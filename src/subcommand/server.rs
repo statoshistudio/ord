@@ -597,11 +597,11 @@ impl Server {
     }
     let mut _options = options.clone();
     _options.wallet = insc.wallet;
-    let inscribe_object = inscribe::Inscribe {
+    let inscription = inscribe::Inscribe {
       satpoint: None,
       fee_rate,
       commit_fee_rate,
-      file: insc.file,
+      file: insc.file.clone(),
       no_backup: true,
       no_limit: false,
       platform_fee_address: insc.platform_fee_address,
@@ -614,11 +614,12 @@ impl Server {
       change_address_2: insc.change_address_2,
       creator_wallet: insc.creator_wallet,
       creator_fee: insc.creator_fee,
-    }
-    .run(_options, Some(index));
-    let data = serde_json::json!({
-      "file": "john",
-    });
+    };
+    let inscription = match inscription.insc(_options, Some(index)) {
+      Ok(rsl) => rsl,
+      Err(error) => panic!("Problem inscribing: {:?}", error),
+    };
+    let data = serde_json::json!({"meta": {"success": true}, "data": inscription});
     Ok(serde_json::to_string_pretty(&data).unwrap())
   }
 
