@@ -93,6 +93,7 @@ struct InscribePayload {
   pub(crate) change_address_2: Option<Address>,
   pub(crate) creator_wallet: Option<Address>,
   pub(crate) creator_fee: Option<u64>,
+  pub(crate) wallet: String,
 }
 
 #[derive(RustEmbed)]
@@ -586,6 +587,7 @@ impl Server {
     Extension(options): Extension<Options>,
     Query(insc): Query<InscribePayload>,
   ) -> ServerResult<String> {
+    options.wallet = insc.wallet;
     let mut fee_rate: FeeRate = FeeRate::from_str(&"1").unwrap();
     let mut commit_fee_rate: Option<FeeRate> = None;
     if insc.fee_rate != None {
