@@ -100,6 +100,7 @@ impl Inscribe {
     let mut utxos;
     let inscriptions;
     let index_pointer = index_param.clone();
+    print!("Chain {}", options.chain().clone().network().to_string());
 
     match index_pointer {
       // Match a single value
