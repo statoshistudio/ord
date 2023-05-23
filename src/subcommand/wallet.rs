@@ -58,7 +58,7 @@ impl Wallet {
     match self {
       Self::Balance => balance::run(options),
       Self::Create(create) => create.run(options),
-      Self::Inscribe(inscribe) => inscribe.run(options),
+      Self::Inscribe(inscribe) => inscribe.run(options, None),
       Self::Inscriptions => inscriptions::run(options),
       Self::Receive => receive::run(options),
       Self::Restore(restore) => restore.run(options),

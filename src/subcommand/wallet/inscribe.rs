@@ -84,24 +84,39 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options, index_param: Option<Arc<Index>>) -> Result {
     // let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
     if self.verbose.clone() != None {
       println!("Update index..");
     }
-    let index = Index::open(&options)?;
+    let index;
+    let mut utxos;
+    let inscriptions;
+    let index_pointer = index_param.clone();
+    match index_pointer {
+      // Match a single value
+      None => {
+        index = Index::open(&options)?;
+        index.update()?;
+        utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+        inscriptions = index.get_inscriptions(None)?;
+      }
+      _ => {
+        utxos = index_param
+          .clone()
+          .unwrap()
+          .get_unspent_outputs(Wallet::load(&options)?)?;
+        inscriptions = index_param.unwrap().get_inscriptions(None)?;
+      }
+    }
 
-    // index.update()?;
     if self.verbose.clone() != None {
       println!("Done updating index...");
     }
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
-
-    let inscriptions = index.get_inscriptions(None)?;
     let commit_tx_change: [Address; 2];
     if self.change_address_1 != None && self.change_address_1 != None {
       commit_tx_change = [

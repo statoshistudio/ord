@@ -17,7 +17,6 @@ use {
     http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
-    routing::post,
     Router, TypedHeader,
   },
   axum_server::Handle,
@@ -37,7 +36,7 @@ use {
     set_header::SetResponseHeaderLayer,
   },
 };
-use {super::*, crate::wallet::Wallet};
+use {super::*, crate::subcommand::wallet::inscribe, crate::wallet::Wallet};
 
 mod error;
 
@@ -77,8 +76,23 @@ struct Search {
 }
 
 #[derive(Deserialize)]
-struct Inscribe {
-  file: String,
+struct InscribePayload {
+  //pub(crate) satpoint: Option<SatPoint>,
+  pub(crate) fee_rate: Option<String>,
+  pub(crate) commit_fee_rate: Option<String>,
+  pub(crate) file: PathBuf,
+  // pub(crate) no_backup: bool,
+  // pub(crate) no_limit: bool,
+  pub(crate) platform_fee_address: Option<Address>,
+  pub(crate) platform_fee: Option<u64>,
+  pub(crate) dry_run: bool,
+  pub(crate) destination: Option<Address>,
+  pub(crate) verbose: Option<bool>,
+  pub(crate) commit_tx: Option<Txid>,
+  pub(crate) change_address_1: Option<Address>,
+  pub(crate) change_address_2: Option<Address>,
+  pub(crate) creator_wallet: Option<Address>,
+  pub(crate) creator_fee: Option<u64>,
 }
 
 #[derive(RustEmbed)]
@@ -570,11 +584,31 @@ impl Server {
   async fn inscribe(
     Extension(index): Extension<Arc<Index>>,
     Extension(options): Extension<Options>,
-    Query(inscribe): Query<Inscribe>,
+    Query(insc): Query<InscribePayload>,
   ) -> ServerResult<String> {
-    print!("TCID {}", inscribe.file);
-
-    Ok(inscribe.file)
+    let inscribe_object = inscribe::Inscribe {
+      satpoint: None,
+      fee_rate: FeeRate::from_str(&insc.fee_rate.unwrap()).unwrap(),
+      commit_fee_rate: Some(FeeRate::from_str(&insc.commit_fee_rate.unwrap()).unwrap()),
+      file: insc.file,
+      no_backup: true,
+      no_limit: false,
+      platform_fee_address: insc.platform_fee_address,
+      platform_fee: insc.platform_fee,
+      dry_run: insc.dry_run,
+      verbose: insc.verbose,
+      destination: insc.destination,
+      commit_tx: insc.commit_tx,
+      change_address_1: insc.change_address_1,
+      change_address_2: insc.change_address_2,
+      creator_wallet: insc.creator_wallet,
+      creator_fee: insc.creator_fee,
+    }
+    .run(options, Some(index));
+    let data = serde_json::json!({
+      "file": "john",
+    });
+    Ok(serde_json::to_string_pretty(&data).unwrap())
   }
 
   async fn transaction_api(
