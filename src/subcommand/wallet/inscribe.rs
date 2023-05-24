@@ -100,7 +100,7 @@ impl Inscribe {
     let mut utxos;
     let inscriptions;
     let index_pointer = index_param.clone();
-
+    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
     match index_pointer {
       // Match a single value
       None => {
@@ -118,7 +118,7 @@ impl Inscribe {
         utxos = index_param
           .clone()
           .unwrap()
-          .get_unspent_outputs(Wallet::load(&options)?)?;
+          .get_unspent_outputs_with_client(Wallet::load(&options)?, &client)?;
 
         inscriptions = index_param.unwrap().get_inscriptions(None)?;
       }
@@ -127,7 +127,6 @@ impl Inscribe {
     if self.verbose.clone() != None {
       println!("Done updating index...");
     }
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let commit_tx_change: [Address; 2];
     if self.change_address_1 != None && self.change_address_1 != None {

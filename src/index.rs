@@ -277,11 +277,18 @@ impl Index {
   }
 
   pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
+    self.get_unspent_outputs_with_client(_wallet, &self.client)
+  }
+
+  pub(crate) fn get_unspent_outputs_with_client(
+    &self,
+    _wallet: Wallet,
+    _client: &Client,
+  ) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
 
     utxos.extend(
-      self
-        .client
+      _client
         .list_unspent(None, None, None, None, None)?
         .into_iter()
         .map(|utxo| {
@@ -299,13 +306,10 @@ impl Index {
       vout: u32,
     }
 
-    for JsonOutPoint { txid, vout } in self
-      .client
-      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
-    {
+    for JsonOutPoint { txid, vout } in _client.call::<Vec<JsonOutPoint>>("listlockunspent", &[])? {
       utxos.insert(
         OutPoint { txid, vout },
-        Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+        Amount::from_sat(_client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
       );
     }
     let rtx = self.database.begin_read()?;
