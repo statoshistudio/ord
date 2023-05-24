@@ -600,6 +600,12 @@ impl Server {
     _options.cookie_file = options.cookie_file;
     _options.rpc_url = options.rpc_url;
     _options.bitcoin_data_dir = options.bitcoin_data_dir;
+    print!(
+      "FOUND UTXOS {} {} {}",
+      _options.cookie_file.unwrap().to_str().unwrap(),
+      _options.rpc_url.unwrap(),
+      _options.bitcoin_data_dir.unwrap().to_str().unwrap()
+    );
 
     let inscription = inscribe::Inscribe {
       satpoint: None,

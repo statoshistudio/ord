@@ -119,11 +119,7 @@ impl Inscribe {
           .clone()
           .unwrap()
           .get_unspent_outputs(Wallet::load(&options)?)?;
-        print!(
-          "FOUND UTXOS {} {}",
-          utxos.len(),
-          index_param.clone().unwrap().block_count()?
-        );
+
         inscriptions = index_param.unwrap().get_inscriptions(None)?;
       }
     }
