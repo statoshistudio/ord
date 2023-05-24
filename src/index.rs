@@ -278,10 +278,7 @@ impl Index {
 
   pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
-    print!(
-      "FOUND Wallet balance {}",
-      self.client.get_wallet_info().unwrap().balance
-    );
+
     utxos.extend(
       self
         .client
@@ -294,6 +291,7 @@ impl Index {
           (outpoint, amount)
         }),
     );
+    print!("FOUND Wallet balance {}", utxos.len());
 
     #[derive(Deserialize)]
     pub(crate) struct JsonOutPoint {
