@@ -602,9 +602,9 @@ impl Server {
     _options.bitcoin_data_dir = options.bitcoin_data_dir;
     print!(
       "FOUND UTXOS {} {} {}",
-      _options.cookie_file.unwrap().to_str().unwrap(),
-      _options.rpc_url.unwrap(),
-      _options.bitcoin_data_dir.unwrap().to_str().unwrap()
+      _options.cookie_file.clone().unwrap().to_str().unwrap(),
+      _options.rpc_url.clone().unwrap(),
+      _options.bitcoin_data_dir.clone().unwrap().to_str().unwrap()
     );
 
     let inscription = inscribe::Inscribe {
