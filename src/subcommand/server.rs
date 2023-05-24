@@ -597,6 +597,10 @@ impl Server {
     }
     let mut _options = options.clone();
     _options.wallet = insc.wallet;
+    _options.cookie_file = options.cookie_file;
+    _options.rpc_url = options.rpc_url;
+    _options.bitcoin_data_dir = options.bitcoin_data_dir;
+
     let inscription = inscribe::Inscribe {
       satpoint: None,
       fee_rate,
