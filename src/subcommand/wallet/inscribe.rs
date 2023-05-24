@@ -100,7 +100,6 @@ impl Inscribe {
     let mut utxos;
     let inscriptions;
     let index_pointer = index_param.clone();
-    print!("Chain {}", options.rpc_url.clone().unwrap());
 
     match index_pointer {
       // Match a single value
@@ -120,7 +119,11 @@ impl Inscribe {
           .clone()
           .unwrap()
           .get_unspent_outputs(Wallet::load(&options)?)?;
-
+        print!(
+          "FOUND UTXOS {} {}",
+          utxos.len(),
+          index_param.clone().unwrap().block_count()?
+        );
         inscriptions = index_param.unwrap().get_inscriptions(None)?;
       }
     }
