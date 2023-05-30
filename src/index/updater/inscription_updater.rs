@@ -238,10 +238,20 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
-    // let new_satpoint = new_satpoint.store();
+    let _satpoint = new_satpoint.store();
+
+    self.satpoint_to_id.insert(&_satpoint, &inscription_id)?;
+    self.id_to_satpoint.insert(&inscription_id, &_satpoint)?;
 
     match env::var("INSCRIPTION_WEB_HOOK") {
       Ok(v) => {
+        let mut secret = String::new();
+        match env::var("WEB_HOOK_SECRET") {
+          Ok(s) => {
+            secret = s;
+          }
+          _ => (),
+        }
         let url = format!(
           "{}?inscription_id={}&txId={}&index={}&offset={}&apiKey={}",
           v,
@@ -249,26 +259,15 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           new_satpoint.outpoint.txid.to_string(),
           new_satpoint.outpoint.vout,
           new_satpoint.offset,
-          "2983"
+          secret
         );
         println!("URL{:#?}", url);
         let resp = reqwest::blocking::get(url)?.text()?;
-        // println!("RESPONSE{:#?}", resp);
-        // print!(
-        //   "InscriptionId {}:{}:{}",
-        //   flotsam.inscription_id.to_string(),
-        //   new_satpoint.to_string(),
-        //   resp,
-        // );
+        println!("RESPONSE{:#?}", resp);
       }
       Err(_) => (),
     };
 
-    // self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
-    // self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
-
-    //Ok(())
-    panic!("error");
-    // Ok(())
+    Ok(())
   }
 }
