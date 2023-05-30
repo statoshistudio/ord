@@ -148,6 +148,7 @@ impl Index {
 
     let database = match unsafe { Database::builder().open_mmapped(&path) } {
       Ok(database) => {
+        println!("Update index..");
         let schema_version = database
           .begin_read()?
           .open_table(STATISTIC_TO_COUNT)?
@@ -174,6 +175,7 @@ impl Index {
         database
       }
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => {
+        println!("Update index..");
         let database = unsafe {
           Database::builder()
             .set_write_strategy(if cfg!(test) {
@@ -214,9 +216,12 @@ impl Index {
 
         database
       }
-      Err(error) => return Err(error.into()),
+      Err(error) => {
+        println!("Error: {}", error.to_string());
+        return Err(error.into());
+      }
     };
-
+    println!("Update index..");
     let genesis_block_coinbase_transaction =
       options.chain().genesis_block().coinbase().unwrap().clone();
 

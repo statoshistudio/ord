@@ -1,4 +1,6 @@
 use super::*;
+use core::panic;
+use std::str;
 
 pub(super) struct Flotsam {
   inscription_id: InscriptionId,
@@ -236,11 +238,37 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
-    let new_satpoint = new_satpoint.store();
+    // let new_satpoint = new_satpoint.store();
 
-    self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
-    self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
+    match env::var("INSCRIPTION_WEB_HOOK") {
+      Ok(v) => {
+        let url = format!(
+          "{}?inscription_id={}&txId={}&index={}&offset={}&apiKey={}",
+          v,
+          flotsam.inscription_id.to_string(),
+          new_satpoint.outpoint.txid.to_string(),
+          new_satpoint.outpoint.vout,
+          new_satpoint.offset,
+          "2983"
+        );
+        println!("URL{:#?}", url);
+        let resp = reqwest::blocking::get(url)?.text()?;
+        // println!("RESPONSE{:#?}", resp);
+        // print!(
+        //   "InscriptionId {}:{}:{}",
+        //   flotsam.inscription_id.to_string(),
+        //   new_satpoint.to_string(),
+        //   resp,
+        // );
+      }
+      Err(_) => (),
+    };
 
-    Ok(())
+    // self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
+    // self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
+
+    //Ok(())
+    panic!("error");
+    // Ok(())
   }
 }

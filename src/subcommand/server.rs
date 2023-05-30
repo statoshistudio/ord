@@ -623,7 +623,7 @@ impl Server {
       Ok(rsl) => rsl,
       Err(error) => panic!("Problem inscribing: {:?}", error),
     };
-    let data = serde_json::json!({"meta": {"success": true}, "data": inscription});
+    let data = serde_json::json!({"meta": {"success": true}, "data": {"result": inscription}});
     Ok(serde_json::to_string_pretty(&data).unwrap())
   }
 

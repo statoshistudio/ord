@@ -85,22 +85,22 @@ pub(crate) struct Inscribe {
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options, index_param: Option<Arc<Index>>) -> Result {
-    self.insc(options, index_param);
+    let insc = self.insc(options, index_param);
     Ok(())
   }
   pub(crate) fn insc(self, options: Options, index_param: Option<Arc<Index>>) -> Result<Output> {
     // let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
     let output: Output;
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
-    if self.verbose.clone() != None {
-      println!("Update index..");
-    }
 
     let index;
     let mut utxos;
     let inscriptions;
     let index_pointer = index_param.clone();
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
+    if self.verbose.clone() != None {
+      println!("Update index..");
+    }
     match index_pointer {
       // Match a single value
       None => {
