@@ -1154,7 +1154,7 @@ impl Server {
     index: Arc<Index>,
     from: Option<u64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
+    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(20, from)?;
 
     Ok(
       InscriptionsHtml {
@@ -1170,7 +1170,7 @@ impl Server {
     index: Arc<Index>,
     from: Option<u64>,
   ) -> ServerResult<String> {
-    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(4, from)?;
+    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(200, from)?;
 
     let obj = serde_json::json!({"meta": {"success": true, "pagination": {
       "prev": prev,
